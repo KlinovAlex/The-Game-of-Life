@@ -5,6 +5,7 @@
 #define MIN_X 0
 #define MAX_Y 25
 #define MIN_Y 0
+
 void populate(int **cell);
 void setState(int **cell);
 void render(int **cell);
@@ -12,6 +13,9 @@ void game_start(void);
 void game_settings(void);
 void game_end(void);
 void draw(void);
+void init_matrix(int ***matrix);
+void free_memory(int **matrix);
+int calc_neighbours(int **gen, int y, int x);
 
 int main() {
     initscr();              // curses start routine
@@ -24,15 +28,17 @@ int main() {
     keypad(stdscr, true);   // turn off keypad from interrupting the game
     raw();                  // don't accept any keyboard commands
 
-    int **cell = malloc((MAX_Y + 2) * sizeof(int*));
-    for (int i = 0; i < MAX_Y; i++) {
-        cell[i] = malloc((MAX_X + 2) * sizeof(int));
-    }
+    // generate matrixes
+    int **gen = NULL;
+    init_matrix(&gen);
+    int **next_gen = NULL;
+    init_matrix(&next_gen);
+
     // welcome screen
     game_start();
     game_settings();
-    populate(cell);
-    // setInitialState(cell); initialize a state from a file
+    populate(gen);
+    // setInitialState(gen); initialize a state from a file
     nodelay(stdscr, true);
 
     int speed = 2;
@@ -45,13 +51,15 @@ int main() {
             nodelay(stdscr, false);
         }
 
-        
-
-
-
-
-
-
+        for (int y = MIN_Y; y < MAX_Y; y++) {
+            for (int x = MIN_X; x < MAX_X; x++) {
+                int count = calc_neighbours(gen, y, x);
+                if (gen[y][x]) {
+                    if (!(count == 2) || (count == 3)) next_gen[y][x] = 0;
+                } else {
+                    if (count == 3)  next_gen[y][x] = 1;
+            }
+        }
 
       // key-presses control
         int input = getch();
@@ -69,7 +77,7 @@ int main() {
 
         clear();
         //render grid
-        render(cell);
+        render(gen);
     }
 
     clear();
@@ -79,16 +87,14 @@ int main() {
     game_end();
 
     // free memory
-    for (int i = 0; i < MAX_Y; i++) {
-        free(cell[i]);
-    }
-    free(cell);
+    free_memory(gen);
+    free_memory(next_gen);
 
     // free memory of the curses library
     endwin();
     return 0;
+    }
 }
-
 void game_start(void){
     attron(COLOR_PAIR(3));
     mvvline(9, MAX_X/1.25,'*',7);
@@ -152,4 +158,27 @@ void render(int **cell) {
           mvprintw(y, x, "%d",cell[y][x]);
         }
     }
+}
+
+void init_matrix(int ***matrix) {
+   *matrix = (int**)malloc((MAX_Y) * sizeof(int*));
+    for (int i = 0; i < MAX_Y; i++) {
+        *(*matrix + i) = (int *)malloc((MAX_X) * sizeof(int));
+    }
+}
+
+void free_memory(int **matrix) {
+    for (int i = 0; i < MAX_Y; i++) {
+            free(matrix[i]);
+    }
+    free(matrix);
+}
+
+
+int calc_neighbours(int **gen, int y, int x) {
+    int count = 0;
+    for (int k = 0; k < 8; k++) {
+        
+    }
+    return count;
 }
