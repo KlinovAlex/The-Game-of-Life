@@ -1,5 +1,4 @@
 #include <curses.h>
-#include <time.h>
 
 #define MAX_X 80
 #define MIN_X 0
@@ -13,44 +12,46 @@ typedef struct {
 } cell;
 
 int main() {
-    initscr();          // curses start routine
-    start_color();      // initialize 3 colors
-    init_pair(1, COLOR_CYAN, COLOR_CYAN);
+    initscr();              // curses start routine
+    start_color();          // initialize 3 colors
+    init_pair(1, COLOR_CYAN, COLOR_BLACK);
     init_pair(2, COLOR_RED, COLOR_BLACK);
     init_pair(3, COLOR_GREEN, COLOR_BLACK);
-    noecho();           // don't show getch() characters on the screen
-    curs_set(0);        // remove cursor
+    noecho();               // don't show getch() characters on the screen
+    curs_set(0);            // remove cursor
+    keypad(stdscr, true);   // turn off keypad from interrupting the game
+    raw();                  // don't accept any keyboard commands
+
+    // welcome screen
 
 
-    //nodelay(stdscr, true);
+    nodelay(stdscr, true);
+    int speed = 2;
+    while(1) {
+        refresh();  // refresh the screen every tick
+        if (speed != 0) timeout(5000 * speed);
 
-    // clock_t start_t = clock();
-    // refresh();
-    // while (clock() < start_t + 100000) {}
+        // key-presses control
+        int input = getch();
+        if (input == '0') speed = 0;
+        if (input == '1') speed = 1;
+        if (input == '2') speed = 2;
+        if (input == '3') speed = 3;
+        if (input == '4') speed = 4;
+        if (input == '5') speed = 5;
+        if (input == '6') speed = 6;
+        if (input == '7') speed = 7;
+        if (input == '8') speed = 8;
+        if (input == '9') speed = 9;
+        if (input == 27) break;
+        clear();
 
-    // slide through upper/lower border
-    //if (r1.y <= MIN_Y + 1) r1.y = MAX_Y - 2;
-    //if (r1.y >= MAX_Y - 1) r1.y = MIN_Y + 2;
-    //if (r2.y <= MIN_Y + 1) r2.y = MAX_Y - 2;
-    //if (r2.y >= MAX_Y - 1) r2.y = MIN_Y + 2;
+        //render grid
+    }
 
-    // key-presses
-    //int input = getch();
-    //if (input == 'a') r2.y--;
-    //if (input == 'z') r2.y++;
-    //if (input == 'k') r1.y--;
-    //if (input == 'm') r1.y++;
-    //if (input == 27) break;
-
-    //clear();
-    //render grid
-    //mvvline(MIN_Y, MAX_X/2, ACS_VLINE, MAX_Y);
-    //mvhline(MIN_Y, MIN_X, ACS_HLINE, MAX_X);
-    //mvhline(MAX_Y, MIN_X, ACS_HLINE, MAX_X);
-
-    //clear();
-    //refresh();
-
+    clear();
+    nodelay(stdscr, false);
+    // call end game screen
 
     endwin();
     return 0;
