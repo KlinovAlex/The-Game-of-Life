@@ -32,13 +32,14 @@ int main() {
     copy_matrix(gen, next_gen);
 
     // return keyboard control
-    freopen("/dev/tty", "rw", stdin);
+    (void)freopen("/dev/tty", "rw", stdin);
 
     game_start();
     clear();
     game_settings();
     clear();
     render(gen);
+    getch();
     nodelay(stdscr, true);
 
     int speed = 1;
