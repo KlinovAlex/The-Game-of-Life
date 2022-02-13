@@ -12,8 +12,8 @@ void game_start(void);
 void game_settings(void);
 void game_end(void);
 void copy_matrix(int original[MAX_Y][MAX_X], int copy[MAX_Y][MAX_X]);
-void error_msg(void);
 int calc_neighbours(int gen[MAX_Y][MAX_X], int y, int x);
+int check_if_all_dead(int gen[MAX_Y][MAX_X]);
 
 int main() {
     initscr();              // curses start routine
@@ -24,12 +24,11 @@ int main() {
     keypad(stdscr, true);
     raw();                  // don't accept any keyboard commands
 
-    int error = 0;
     // generate matrixes
     int gen[MAX_Y][MAX_X];
     int next_gen[MAX_Y][MAX_X];
     populate(gen);
-    if (setState(gen)) error = 1;
+    setState(gen);
     copy_matrix(gen, next_gen);
 
     // return keyboard control
@@ -38,13 +37,15 @@ int main() {
     game_start();
     clear();
     game_settings();
-
+    clear();
+    render(gen);
     nodelay(stdscr, true);
 
     int speed = 1;
-    if (!error) {
-    while(1) {
+    while (1) {
         refresh();  // refresh the screen every tick
+        if (check_if_all_dead(gen) == 2000) break;
+
         if (speed != 0) {
             nodelay(stdscr, true);
             timeout(300 / speed);
@@ -82,29 +83,26 @@ int main() {
         if (speed == 0 && input != 32) continue;
         clear();
 
-        //render grid
+        //  render grid
         render(gen);
     }
     refresh();
     clear();
     nodelay(stdscr, false);
 
-    // call end game screen
+    //  call end game screen
     game_end();
-    } else {
-        void error_msg(void);
-    }
-    // free memory of the curses library
+    //  free memory of the curses library
     endwin();
     return 0;
 }
 
-void game_start(void){
+void game_start(void) {
     attron(COLOR_PAIR(1));
-    mvvline(9, MAX_X/1.25,'*',7);
-    mvvline(9, MAX_X/2.7,'*',7);
+    mvvline(9, MAX_X/1.25, '*', 7);
+    mvvline(9, MAX_X/2.7, '*', 7);
     mvhline(8, 30, '*', 34);
-    mvhline(16, 30,'*', 34);
+    mvhline(16, 30, '*', 34);
     mvprintw(11, MAX_X/2.4, "%s", "Welcome to the game of life!");
     mvprintw(13, MAX_X/2.3, "%s", "Press any buttom to start");
     attroff(COLOR_PAIR(1));
@@ -113,10 +111,10 @@ void game_start(void){
 
 void game_settings(void) {
     attron(COLOR_PAIR(1));
-    mvvline(9, MAX_X/1.19,'*',13);
-    mvvline(9, MAX_X/2.8,'*',13);
+    mvvline(9, MAX_X/1.19, '*', 13);
+    mvvline(9, MAX_X/2.8, '*', 13);
     mvhline(8, 29, '*', 38);
-    mvhline(22, 29,'*', 38);
+    mvhline(22, 29, '*', 38);
     mvprintw(11, MAX_X/1.85, "%s", "SETTINGS:");
     mvprintw(14, MAX_X/2.4, "%s", "0 - to start step by step mode");
     mvprintw(16, MAX_X/2.5, "%s", "1-9 - to change flow of the time");
@@ -126,8 +124,8 @@ void game_settings(void) {
 }
 
 void populate(int cell[MAX_Y][MAX_X]) {
-  for(int y = MIN_Y; y < MAX_Y; y++) {
-       for(int x = MIN_X; x < MAX_X; x++) {
+  for (int y = MIN_Y; y < MAX_Y; y++) {
+       for (int x = MIN_X; x < MAX_X; x++) {
             cell[y][x]= 0;
         }
     }
@@ -135,8 +133,8 @@ void populate(int cell[MAX_Y][MAX_X]) {
 
 int setState(int cell[MAX_Y][MAX_X]) {
     int count = 0;
-    for(int y = MIN_Y; y < MAX_Y; y++) {
-        for(int x = MIN_X; x < MAX_X; x++) {
+    for (int y = MIN_Y; y < MAX_Y; y++) {
+        for (int x = MIN_X; x < MAX_X; x++) {
             count += scanf("%d", &cell[y][x]);
         }
     }
@@ -146,10 +144,10 @@ int setState(int cell[MAX_Y][MAX_X]) {
 
 void game_end(void) {
     attron(COLOR_PAIR(1));
-    mvvline(9, MAX_X/1.19,'*',9);
-    mvvline(9, MAX_X/2.8,'*',9);
+    mvvline(9, MAX_X/1.19, '*', 9);
+    mvvline(9, MAX_X/2.8, '*', 9);
     mvhline(8, 29, '*', 38);
-    mvhline(18, 29,'*', 38);
+    mvhline(18, 29, '*', 38);
     mvprintw(11, MAX_X/2.0, "%s", "THE WORLD ENDS!");
     mvprintw(12, MAX_X/2.2, "%s", "THE LIFE HAS NEVER EVOLVED.");
     mvprintw(13, MAX_X/2.5, "%s", "WE ALL DIED AS SINGULAR CELLS :C");
@@ -159,8 +157,8 @@ void game_end(void) {
 }
 
 void render(int cell[MAX_Y][MAX_X]) {
-   for(int y = MIN_Y; y < MAX_Y; y++) {
-       for(int x = MIN_X; x < MAX_X; x++) {
+    for (int y = MIN_Y; y < MAX_Y; y++) {
+        for (int x = MIN_X; x < MAX_X; x++) {
             if (cell[y][x] == 1) {
                 attron(COLOR_PAIR(1));
                 mvprintw(y, x, "O");
@@ -179,15 +177,17 @@ int calc_neighbours(int gen[MAX_Y][MAX_X], int y, int x) {
             if (i == MAX_Y) {
                 curr_y = MIN_Y;
             } else if (i == -1) {
-                curr_y = MAX_Y - 1;
-            } else curr_y = i;
-
+                    curr_y = MAX_Y - 1;
+            } else {
+                curr_y = i;
+            }
             if (j == MAX_X) {
                 curr_x = MIN_X;
             } else if (j == -1) {
                 curr_x = MAX_X - 1;
+            } else {
+                curr_x = j;
             }
-            else curr_x = j;
             count+=gen[curr_y][curr_x];
         }
     }
@@ -202,4 +202,13 @@ void copy_matrix(int original[MAX_Y][MAX_X], int copy[MAX_Y][MAX_X]) {
             copy[y][x] = original[y][x];
         }
     }
+}
+int check_if_all_dead(int gen[MAX_Y][MAX_X]) {
+    int count = 0;
+    for (int y = MIN_Y; y < MAX_Y; y++) {
+        for (int x = MIN_X; x < MAX_X; x++) {
+            if (!gen[y][x]) count++;
+        }
+    }
+    return count;
 }
